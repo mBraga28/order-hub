@@ -11,6 +11,12 @@ export class OrderService {
     return await this.prisma.order.findMany();
   }
 
+  async findOne(id: number) {
+    return await this.prisma.order.findUnique({ 
+      where: { id } 
+    });
+  }
+
   async create(data: CreateOrderDto) {
     const order = await this.prisma.order.create({ data });
 
