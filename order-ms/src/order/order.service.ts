@@ -1,14 +1,33 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateOrderDto } from './create-order.dto';
+import { Kafka } from 'kafkajs';
 
 @Injectable()
-export class OrderService {
+export class OrderService implements OnModuleInit {
 
+  private kafkaProducer;
 
   constructor(private readonly prisma: PrismaService) {}
+
+  async onModuleInit() {
+    const kafka = new Kafka({
+      brokers: ['localhost:9092'],
+    });
+
+    this.kafkaProducer = kafka.producer();
+    await this.kafkaProducer.connect();
+  }
+
   async findAll() {
-    return await this.prisma.order.findMany();
+    const orders = await this.prisma.order.findMany();
+
+    await this.kafkaProducer.send({
+      topic: 'order-events',
+      messages: [{ value: JSON.stringify({event: 'GET_ALL_ORDERS', orders: await orders}) }],
+    });
+
+    return orders;
   }
 
   async findOne(id: number) {
@@ -19,6 +38,11 @@ export class OrderService {
 
   async create(data: CreateOrderDto) {
     const order = await this.prisma.order.create({ data });
+
+    await this.kafkaProducer.send({
+      topic: 'order-events',
+      messages: [{ value: JSON.stringify({event: 'ORDER_CREATED', order}) }],
+    });
 
     await this.updateStatus(order.id, 'processing');
 
