@@ -6,7 +6,7 @@ Order Hub is a NestJS-based application designed to manage and process orders ef
 
 ## Features
 
-- **Order Management**: Create, update, delete, and retrieve orders.
+- **Order Management**: Create, update, and retrieve orders.
 - **User Management**: Create, update, delete, and retrieve users.
 - **Database Integration**: Seamless integration with a database for persistent storage.
 - **API Documentation**: Comprehensive API documentation using Swagger.
